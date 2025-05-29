@@ -195,7 +195,7 @@ dataStandardServer <- function(input, output, session, app_state) {
     if (selected_index > 0 && selected_index <= length(metric_names_ordered)) {
       selected_metric_name <- metric_names_ordered[selected_index]
       remove_defined_metric(app_state, selected_metric_name)
-      showNotification(paste("Metric", selected_metric_name, "removed"), type = "message")
+      # showNotification(paste("Metric", selected_metric_name, "removed"), type = "message") # REMOVED
       # Table will update via the observe above
     }
   })
@@ -307,7 +307,7 @@ dataStandardServer <- function(input, output, session, app_state) {
         })
       }
       
-      showNotification("Standardized data calculated", type = "message")
+      # showNotification("Standardized data calculated", type = "message") # REMOVED
     } else {
       set_standardized_data(app_state, NULL)
       set_calculation_log(app_state, calculation_result$log)
@@ -420,7 +420,7 @@ dataStandardServer <- function(input, output, session, app_state) {
         recalculate_projections(app_state, auto_triggered = TRUE)
       })
       
-      showNotification("Successfully imported and applied standardized dataset.", type = "message")
+      # showNotification("Successfully imported and applied standardized dataset.", type = "message") # REMOVED
       
     }, error = function(e) {
       showNotification(paste("Error processing uploaded standardized file:", e$message), type = "error", duration=8)

@@ -420,7 +420,7 @@ projectionsServer <- function(input, output, session, app_state, state_prefix = 
       
       set_programmatic_update(app_state, FALSE) # Release lock
       
-      showNotification("Imported assumptions applied to MAIN DCF.", type = "message")
+      # showNotification("Imported assumptions applied to MAIN DCF.", type = "message") # REMOVED
       # --- End Directly Apply Parsed Data ---
       
     }, error = function(e) {
@@ -479,7 +479,7 @@ projectionsServer <- function(input, output, session, app_state, state_prefix = 
     set_current_assumptions(modified_assumptions) # Use helper
     set_programmatic_update(app_state, FALSE)
     
-    showNotification(paste("Applied auto-calculations to", sum(unlist(auto_flags)), "rows for", state_prefix), type = "message")
+    # showNotification(paste("Applied auto-calculations to", sum(unlist(auto_flags)), "rows for", state_prefix), type = "message") # REMOVED
   })
   
   
@@ -708,7 +708,7 @@ projectionsServer <- function(input, output, session, app_state, state_prefix = 
             set_current_assumptions(modified_assumptions) # Use helper
             set_programmatic_update(app_state, FALSE)
             set_current_fade_modified(row_idx, FALSE) # Use helper
-            showNotification(paste("Applied fade to", assumption_name, "for", state_prefix), type = "message")
+            # showNotification(paste("Applied fade to", assumption_name, "for", state_prefix), type = "message") # REMOVED
           } else { stop("Fade calculation failed") }
         }, error = function(e) { showNotification(paste("Fade Error:", e$message), type = "error") })
       })
@@ -799,7 +799,7 @@ projectionsServer <- function(input, output, session, app_state, state_prefix = 
     # Update state only if no errors occurred OR decide if partial update is okay
     if (!errors_occurred) {
       set_assumptions_data(app_state, assumptions_modified)
-      showNotification("Applied fades to all assumptions", type = "message")
+      # showNotification("Applied fades to all assumptions", type = "message") # REMOVED
     } else {
       showNotification("Errors occurred during 'Apply All Fades'. Some rows may not be updated. Check console.", type = "warning", duration=8)
       # Optionally revert: set_assumptions_data(app_state, current_assumptions)
