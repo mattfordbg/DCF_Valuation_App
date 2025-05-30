@@ -177,7 +177,6 @@ dataImportServer <- function(input, output, session, app_state) {
       
       # Ensure new_rows is a valid data frame before proceeding
       if (!is.data.frame(new_rows) || nrow(new_rows) == 0) {
-        # showNotification("No valid new rows selected or data format issue.", type="warning") # REMOVED
         return() # Stop processing
       }
       
@@ -209,14 +208,8 @@ dataImportServer <- function(input, output, session, app_state) {
           app_state$data$import_metadata$last_import_time <- Sys.time()
           # Ensure sheet_name exists before trying to unique it
           if("sheet_name" %in% names(combined_data)) {
-            app_state$data$import_metadata$sheets_imported <- unique(c(app_state$data$import_metadata$sheets_imported, combined_data$sheet_name[!is.na(combined_data$sheet_name)]))
+            app_state$data$import_metadata$sheets_imported <- unique(c(app_state$data_import_metadata$sheets_imported, combined_data$sheet_name[!is.na(combined_data$sheet_name)]))
           }
-          
-          # showNotification( # REMOVED
-          #   paste("Imported", nrow(new_rows), "rows. Total:", get_import_count(app_state), "rows"),
-          #   type = "message",
-          #   duration = 3
-          # )
           
           # Auto-advance sheet (keep existing logic)
           req(input$file)
@@ -268,11 +261,6 @@ dataImportServer <- function(input, output, session, app_state) {
         
         
         # Visual feedback
-        # showNotification( # REMOVED
-        #   paste("Imported", nrow(new_rows), "rows. Total:", get_import_count(app_state), "rows"),
-        #   type = "message",
-        #   duration = 3
-        # )
         
         # Auto-advance sheet
         req(input$file) # Ensure file input hasn't vanished
@@ -295,7 +283,6 @@ dataImportServer <- function(input, output, session, app_state) {
         })
       }
     } else {
-      # showNotification("No rows selected or raw data missing.", type="warning") # REMOVED
     }
   })
   
@@ -304,7 +291,6 @@ dataImportServer <- function(input, output, session, app_state) {
     reset_data(app_state) # Resets selected, raw, count, metadata
     # Optionally clear file input
     # shinyjs::reset("file") # Might require input binding ID if fileInput is complex
-    # showNotification("All imported data cleared", type = "warning", duration = 3) # REMOVED
   })
   
 }
