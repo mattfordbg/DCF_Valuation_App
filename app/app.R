@@ -310,7 +310,7 @@ server <- function(input, output, session) {
     )
     
     # --- Update State ---
-    if (!is.null(proj_result)) { print("Main DCF calculation successful."); if (auto_triggered) showNotification("Projections automatically updated", type = "message") } else { print("Main DCF calculation failed or returned NULL.") }
+    if (!is.null(proj_result)) { print("Main DCF calculation successful."); if (auto_triggered) { /* showNotification("Projections automatically updated", type = "message") */ } } else { print("Main DCF calculation failed or returned NULL.") } # REMOVED showNotification
     set_projections_data(app_state, proj_result)
   }
   
@@ -344,7 +344,7 @@ server <- function(input, output, session) {
       if (nrow(hurdle_intrinsic_value_row) > 0) { first_year_col <- colnames(hurdle_proj_result_raw)[grepl("^\\d{4}$", colnames(hurdle_proj_result_raw))][1]; hurdle_intrinsic_value <- hurdle_intrinsic_value_row[[first_year_col]]; if (!is.null(target_future_value) && target_future_value > 0 && is.numeric(hurdle_intrinsic_value)) { hurdle_return_multiple <- hurdle_intrinsic_value / target_future_value } }; print(paste("Hurdle Achieved Multiple:", hurdle_return_multiple)); prop_row_idx <- which(hurdle_proj_result_raw$Metric == "Proportion of Market Cap"); if (length(prop_row_idx) > 0) { hurdle_proj_result_raw$Metric[prop_row_idx] <- "Hurdle Multiple Achieved (x)"; hurdle_proj_result_raw[prop_row_idx, -1] <- NA; hurdle_proj_result_raw[prop_row_idx, first_year_col] <- hurdle_return_multiple } else { new_row <- data.frame(Metric = "Hurdle Multiple Achieved (x)"); new_row[1, setdiff(colnames(hurdle_proj_result_raw), "Metric")] <- NA; new_row[1, first_year_col] <- hurdle_return_multiple; hurdle_proj_result_raw <- rbind(hurdle_proj_result_raw, new_row) }
       
       set_hurdle_projections_data(app_state, hurdle_proj_result_raw)
-      if (auto_triggered) showNotification("Hurdle projections automatically updated", type = "message")
+      if (auto_triggered) { /* showNotification("Hurdle projections automatically updated", type = "message") */ } # REMOVED showNotification
     } else {
       print("Hurdle DCF calculation failed or returned NULL.")
       set_hurdle_projections_data(app_state, NULL)
@@ -691,7 +691,7 @@ server <- function(input, output, session) {
   
   # Connect the generate projections button to the recalculate function (for MAIN DCF)
   observeEvent(input$generate_projections_btn, {
-    showNotification("Manual projection generation triggered.", type = "message")
+    # showNotification("Manual projection generation triggered.", type = "message") # REMOVED
     recalculate_projections(app_state, auto_triggered = FALSE) # Calls server-local helper
   })
   
@@ -725,7 +725,7 @@ server <- function(input, output, session) {
       for (col in year_cols) {
         val <- suppressWarnings(as.numeric(proj_df_orig[cagr_row_idx, col])) # Use original numeric value
         if(is.numeric(val) && !is.na(val)) {
-          formatted_val <- paste0(formatC(val * 100, format = "f", digits = 0), "%") # Multiply by 100 here
+          formatted_val <- paste0(formatC(val, format = "f", digits = 0), "%") # Corrected: No * 100
           proj_df_display[cagr_row_idx, col] <- paste0("<i>", formatted_val, "</i>")
         } else { proj_df_display[cagr_row_idx, col] <- "" }
       }
@@ -736,8 +736,8 @@ server <- function(input, output, session) {
       for (col in year_cols) {
         val <- suppressWarnings(as.numeric(proj_df_orig[fcfe_growth_row_idx, col])) # Use original value
         if(is.numeric(val) && !is.na(val)) {
-          formatted_val <- paste0(formatC(val * 100, format = "f", digits = 1), "%") # e.g., 10.5%
-          proj_df_display[fcfe_growth_row_idx, col] <- formatted_val # No italics needed?
+          formatted_val <- paste0(formatC(val, format = "f", digits = 1), "%") # Corrected: No * 100
+          proj_df_display[fcfe_growth_row_idx, col] <- paste0("<i>", formatted_val, "</i>") # Added italics
         } else { proj_df_display[fcfe_growth_row_idx, col] <- "" }
       }
     }
@@ -883,7 +883,7 @@ server <- function(input, output, session) {
       
       set_programmatic_update(app_state, FALSE) # Release lock
       
-      showNotification("Hurdle base values calculated and assumptions initialized.", type="message")
+      # showNotification("Hurdle base values calculated and assumptions initialized.", type="message") # REMOVED
       
       # Trigger hurdle projections recalculation (use delay?)
       shinyjs::delay(100, {
@@ -962,7 +962,7 @@ server <- function(input, output, session) {
       for (col in year_cols) {
         val <- suppressWarnings(as.numeric(hurdle_proj_df_orig[fcfe_growth_row_idx, col]))
         if(is.numeric(val) && !is.na(val)) {
-          hurdle_proj_df_display[fcfe_growth_row_idx, col] <- paste0(formatC(val, digits = 1, format = "f"), "%")
+          hurdle_proj_df_display[fcfe_growth_row_idx, col] <- paste0("<i>", formatC(val, digits = 1, format = "f"), "%</i>") # Added italics
         } else { hurdle_proj_df_display[fcfe_growth_row_idx, col] <- "" }
       }
     }
