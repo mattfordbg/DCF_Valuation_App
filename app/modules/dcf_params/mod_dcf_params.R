@@ -224,37 +224,29 @@ dcfParamsServer <- function(input, output, session, app_state, state_prefix = "d
     param_names <- names(params)
     if(length(param_names) == 0) return()
     
-    freezeReactiveValue(input, "risk_free_rate")
     if (isolate(input$risk_free_rate) != get_param_value("risk_free_rate", 0)) {
       updateNumericInput(session, "risk_free_rate", value = get_param_value("risk_free_rate", 0))
     }
-    freezeReactiveValue(input, "equity_premium")
     if (isolate(input$equity_premium) != get_param_value("equity_premium", 0)) {
       updateNumericInput(session, "equity_premium", value = get_param_value("equity_premium", 0))
     }
-    freezeReactiveValue(input, "beta")
     if (isolate(input$beta) != get_param_value("beta", 1)) {
       updateNumericInput(session, "beta", value = get_param_value("beta", 1))
     }
-    freezeReactiveValue(input, "country_premium")
     if (isolate(input$country_premium) != get_param_value("country_premium", 0)) {
       updateNumericInput(session, "country_premium", value = get_param_value("country_premium", 0))
     }
-    freezeReactiveValue(input, "long_run_inflation")
     if (isolate(input$long_run_inflation) != get_param_value("long_run_inflation", 2)) {
       updateNumericInput(session, "long_run_inflation", value = get_param_value("long_run_inflation", 2))
     }
-    freezeReactiveValue(input, "additional_terminal_growth")
     if (isolate(input$additional_terminal_growth) != get_param_value("additional_terminal_growth", 0)) {
       updateNumericInput(session, "additional_terminal_growth", value = get_param_value("additional_terminal_growth", 0))
     }
-    freezeReactiveValue(input, "CAP")
     if (isolate(input$CAP) != get_param_value("CAP", 10)) {
       updateNumericInput(session, "CAP", value = get_param_value("CAP", 10))
     }
     # Only update market cap UI if it's the main DCF module
     if (state_prefix == "dcf") {
-      freezeReactiveValue(input, "market_cap")
       if (isolate(input$market_cap) != get_param_value("market_cap", 0)) {
         updateNumericInput(session, "market_cap", value = get_param_value("market_cap", 0))
       }
