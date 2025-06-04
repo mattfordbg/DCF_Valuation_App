@@ -841,6 +841,14 @@ server <- function(input, output, session) {
       app_state$hurdle_dcf$parameters$CAP <- current_hurdle_cap
       print(paste("  Restored Hurdle CAP:", current_hurdle_cap))
       
+      print("Resetting modified flags for copied hurdle parameters...")
+      for(param_name in names(main_dcf_params)) {
+        if (param_name != "CAP" && param_name != "market_cap" && param_name %in% names(app_state$ui$hurdle_params_modified)) {
+          set_hurdle_param_modified(app_state, param_name, FALSE)
+          print(paste("  Reset modified flag for hurdle parameter:", param_name))
+        }
+      }
+
       # Calculate and set the hurdle target market cap separately
       current_mkt_cap <- main_dcf_params$market_cap %||% 0
       target_mult <- hurdle_inputs$target_multiple %||% 1
@@ -859,6 +867,7 @@ server <- function(input, output, session) {
       
       # --- Initialize Hurdle Assumptions ---
       # Copy last year's assumptions from main DCF as starting point for hurdle
+      hurdle_cap <- current_hurdle_cap
       hurdle_proj_years <- seq(from = hurdle_start_year, length.out = hurdle_cap)
       hurdle_proj_year_cols <- as.character(hurdle_proj_years)
       last_main_dcf_assum_col <- tail(colnames(main_dcf_assum)[grepl("^\\d{4}$", colnames(main_dcf_assum))], 1)
