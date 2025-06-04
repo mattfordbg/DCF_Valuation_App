@@ -1,0 +1,27 @@
+{
+    "id": "2D1F4955",
+    "path": "~/Library/CloudStorage/OneDrive-BaillieGifford&Co/Work/Tools/Modularised Quick Valuation/DCF_Valuation_App/app/modules/formula_builder/mod_formula_builder.R",
+    "project_path": "app/modules/formula_builder/mod_formula_builder.R",
+    "type": "r_source",
+    "hash": "3177727792",
+    "contents": "",
+    "dirty": false,
+    "created": 1743761848072.0,
+    "source_on_save": false,
+    "relative_order": 8,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "12,51",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1744360290,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1744360290302,
+    "read_only": false,
+    "read_only_alternatives": []
+}
