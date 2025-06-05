@@ -251,14 +251,9 @@ dcfParamsServer <- function(input, output, session, app_state, state_prefix = "d
     if (isolate(input$CAP) != get_param_value("CAP", 10)) {
       updateNumericInput(session, "CAP", value = get_param_value("CAP", 10))
     }
-    # Only update market cap UI if it's the main DCF module
-    if (state_prefix == "dcf") {
-      if (isolate(input$market_cap) != get_param_value("market_cap", 0)) {
-        updateNumericInput(session, "market_cap", value = get_param_value("market_cap", 0))
-      }
-    } else {
-      # Optionally disable market cap input for hurdle module
-      shinyjs::disable("market_cap")
+    # Update market cap UI for both "dcf" and "hurdle_dcf" state_prefix
+    if (isolate(input$market_cap) != get_param_value("market_cap", 0)) {
+      updateNumericInput(session, "market_cap", value = get_param_value("market_cap", 0))
     }
     
   })
