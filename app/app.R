@@ -797,18 +797,18 @@ server <- function(input, output, session) {
       print(paste("Hurdle panel display market_cap set from DCF tab:", app_state$hurdle_dcf$parameters$market_cap))
 
       # Calculate the target_future_value for the hurdle multiple calculation
-      # This uses the main DCF market cap as the base.
-      current_mkt_cap_from_main_dcf <- main_dcf_params$market_cap %||% 0
+      # This now uses the Hurdle panel's market cap (which was just copied from main DCF) as the base.
+      current_mkt_cap_for_hurdle_calc <- app_state$hurdle_dcf$parameters$market_cap %||% 0 # <-- NEW BASE
       target_mult <- hurdle_inputs$target_multiple %||% 1
       dilution <- hurdle_inputs$dilution_pct %||% 0
       calculated_target_future_value <- 0
-      if (current_mkt_cap_from_main_dcf > 0 && (1 - dilution/100) > 0) {
-        calculated_target_future_value <- current_mkt_cap_from_main_dcf * target_mult / (1 - dilution/100)
-      } else if (current_mkt_cap_from_main_dcf > 0) {
+      if (current_mkt_cap_for_hurdle_calc > 0 && (1 - dilution/100) > 0) { # <-- USES NEW BASE
+        calculated_target_future_value <- current_mkt_cap_for_hurdle_calc * target_mult / (1 - dilution/100) # <-- USES NEW BASE
+      } else if (current_mkt_cap_for_hurdle_calc > 0) { # <-- USES NEW BASE
         print("Warning: Dilution >= 100%, target future value for multiple calc cannot be determined meaningfully.")
         calculated_target_future_value <- NA
       }
-      app_state$hurdle_dcf$target_future_value_for_calc <- calculated_target_future_value # Store for use in projection calc
+      app_state$hurdle_dcf$target_future_value_for_calc <- calculated_target_future_value
       print(paste("Calculated target_future_value_for_calc (for Hurdle Multiple):", app_state$hurdle_dcf$target_future_value_for_calc))
       
       req(main_dcf_proj, main_dcf_assum, main_dcf_params, hurdle_inputs) # Ensure required data exists

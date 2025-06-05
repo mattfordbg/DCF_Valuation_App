@@ -151,18 +151,25 @@ dcfParamsServer <- function(input, output, session, app_state, state_prefix = "d
   }, ignoreNULL = FALSE) # Allow handling empty input
   
   observeEvent(input$market_cap, {
-    # Keep previous market cap logic
     val <- input$market_cap
-    if (state_prefix == "dcf") {
-      if (!is.null(val) && is.numeric(val) && !is.na(val) && val >= 0) { # Added val >= 0 check
-        current_state_val <- get_param_value("market_cap", NA)
-        if (!identical(val, current_state_val)) {
-          app_state$dcf$parameters$market_cap <- val
-        }
-      } else {
-        print(paste(state_prefix,"- market_cap input is not a valid non-negative number:", val))
+    # Logic should apply to both "dcf" and "hurdle_dcf" state_prefix
+    if (!is.null(val) && is.numeric(val) && !is.na(val) && val >= 0) {
+      current_state_val <- get_param_value("market_cap", NA) # get_param_value uses state_prefix
+      if (!identical(val, current_state_val)) {
+        app_state[[state_prefix]]$parameters$market_cap <- val # Update using state_prefix
+        maybe_set_modified_flag("market_cap") # This will correctly set modified flag for "hurdle_dcf"
       }
-    } else { shinyjs::disable("market_cap") }
+    } else {
+      # Optionally, provide a more specific message or reset the input if invalid
+      print(paste(state_prefix, "- market_cap input is not a valid non-negative number:", val))
+      # Revert UI only if state value is valid and different from current (potentially invalid) input
+      # valid_state_val <- get_param_value("market_cap", NULL)
+      # if(!is.null(valid_state_val) && !identical(val, valid_state_val)) {
+      #   updateNumericInput(session, "market_cap", value = valid_state_val)
+      # }
+    }
+    # REMOVE: shinyjs::disable("market_cap") for the hurdle_dcf case.
+    # The market_cap input in the Hurdle tab's parameter panel should now be enabled and editable.
   }, ignoreNULL = FALSE)
   
   # --- Calculate and display derived rates ---

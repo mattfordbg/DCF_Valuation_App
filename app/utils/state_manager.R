@@ -54,7 +54,7 @@ initialize_app_state <- function() {
       hurdle_fade_inputs_modified = as.list(rep(FALSE, 8)),
       hurdle_params_modified = list(
         risk_free_rate = FALSE, equity_premium = FALSE, beta = FALSE, country_premium = FALSE,
-        long_run_inflation = FALSE, additional_terminal_growth = FALSE, CAP = FALSE
+        long_run_inflation = FALSE, additional_terminal_growth = FALSE, CAP = FALSE, market_cap = FALSE
       ),
       imported_file_data = NULL
     )
