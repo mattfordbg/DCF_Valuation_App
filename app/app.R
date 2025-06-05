@@ -971,7 +971,7 @@ server <- function(input, output, session) {
             } else {
               hurdle_proj_df_display[row_idx, col_name_char] <- format(current_val, big.mark = ",", scientific = FALSE, trim = TRUE, nsmall = 2)
             }
-          } else if (!is_numeric(current_val) || is.na(current_val)) {
+          } else if (!is.numeric(current_val) || is.na(current_val)) {
             # If already character (e.g. from a previous incorrect format) or NA, ensure it's character for DT.
             # Special metric rows will also fall here initially if their rounded numeric value was taken.
             # Their specific string formatting later will overwrite this.
