@@ -19,12 +19,14 @@ def initialize_app_state():
         }
 
         st.session_state.standardization = {
-            'years_detected': None, # List of strings or numbers
+            'years_detected': [], # List of strings or numbers
             'components': [], # List of numbers (suffixes)
             'defined_metrics': {}, # Dict to store metric_name: metric_data
             'standardized_data': None, # Pandas DataFrame
             'calculation_log': "",
-            'last_used_component': ""
+            'last_used_component': "",
+            'metric_mappings': {}, # Added for standardization UI
+            'replace_na_with_zero': True # Added for standardization processing
         }
 
         st.session_state.dcf = {
