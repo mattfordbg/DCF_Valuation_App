@@ -206,13 +206,12 @@ dcfParamsServer <- function(input, output, session, app_state, state_prefix = "d
   
   output$discount_rate_display <- renderText({
     rate <- discount_rate_calc()
-    # Add prefix to output
-    paste0(toupper(state_prefix)," Disc Rate: ", format(rate * 100, nsmall = 2, digits=2), "%")
+    paste0("Discount Rate: ", format(rate * 100, nsmall = 2, digits=2), "%")
   })
   
   output$terminal_growth_rate_display <- renderText({
     rate <- terminal_growth_rate_calc()
-    paste0(toupper(state_prefix), " Term Gr: ", format(rate * 100, nsmall = 2, digits=2), "%")
+    paste0("Terminal Growth Rate: ", format(rate * 100, nsmall = 2, digits=2), "%")
   })
   
   # --- Update module inputs if parameters change elsewhere (e.g., import or sync) ---

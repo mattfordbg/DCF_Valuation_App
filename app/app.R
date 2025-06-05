@@ -849,8 +849,12 @@ server <- function(input, output, session) {
         }
       }
 
+      # Inherit market cap from main DCF as starting point for Hurdle calc
+      app_state$hurdle_dcf$parameters$market_cap <- main_dcf_params$market_cap %||% 0
+      print(paste("Hurdle internal market_cap initially set from DCF tab:", app_state$hurdle_dcf$parameters$market_cap))
+
       # Calculate and set the hurdle target market cap separately
-      current_mkt_cap <- main_dcf_params$market_cap %||% 0
+      current_mkt_cap <- main_dcf_params$market_cap %||% 0 # This will now use the value from main_dcf_params
       target_mult <- hurdle_inputs$target_multiple %||% 1
       dilution <- hurdle_inputs$dilution_pct %||% 0
       target_future_value = 0
@@ -863,6 +867,8 @@ server <- function(input, output, session) {
       }
       app_state$hurdle_dcf$parameters$market_cap <- target_future_value # Store calculated target value
       print(paste("Hurdle Target Future Value (stored in market_cap):", target_future_value))
+      set_hurdle_param_modified(app_state, "market_cap", FALSE) # Reset modified flag for market_cap
+      print("Reset modified flag for hurdle parameter: market_cap")
       
       
       # --- Initialize Hurdle Assumptions ---
