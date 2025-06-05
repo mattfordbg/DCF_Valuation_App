@@ -41,8 +41,9 @@ initialize_app_state <- function() {
       ),
       # --- END MODIFICATION ---
       base_revenue = 0, non_operating_assets = 0, projections = NULL,
-      hurdle_inputs = list(target_multiple = 5, holding_period = 5, dilution_pct = 20),
-      last_hist_year = NULL
+      hurdle_inputs = list(target_multiple = 5, holding_period = 5, dilution_pct = 0),
+      last_hist_year = NULL,
+      target_future_value_for_calc = 0
     ),
     
     # --- UI states ---

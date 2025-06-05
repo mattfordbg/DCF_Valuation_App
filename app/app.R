@@ -159,7 +159,7 @@ ui <- fluidPage(
                                        fluidRow(
                                          column(4, numericInput("hurdle_target_multiple", "Target Return (x)", value = 5, min = 0.1, step = 0.1)),
                                          column(4, numericInput("hurdle_holding_period", "Holding Period (Yrs)", value = 5, min = 1, step = 1)),
-                                         column(4, numericInput("hurdle_dilution_pct", "Est. Dilution (%)", value = 20, min = 0, max = 100, step = 1))
+                                         column(4, numericInput("hurdle_dilution_pct", "Est. Dilution (%)", value = 0, min = 0, max = 100, step = 1))
                                        ),
                                        fluidRow(
                                          column(12, actionButton("calculate_hurdle_base", "Calculate Hurdle Base Values", class="btn-info"))
@@ -340,7 +340,7 @@ server <- function(input, output, session) {
     if (!is.null(hurdle_proj_result_raw)) {
       print("Hurdle DCF raw calculation successful. Post-processing...")
       # ... (Keep post-processing logic to calculate and add/update the Hurdle Multiple row) ...
-      hurdle_intrinsic_value_row <- hurdle_proj_result_raw[hurdle_proj_result_raw$Metric == "Intrinsic Value", ]; target_future_value <- hurdle_params_list$market_cap; hurdle_return_multiple <- NA
+      hurdle_intrinsic_value_row <- hurdle_proj_result_raw[hurdle_proj_result_raw$Metric == "Intrinsic Value", ]; target_future_value <- app_state$hurdle_dcf$target_future_value_for_calc %||% 0; hurdle_return_multiple <- NA
       if (nrow(hurdle_intrinsic_value_row) > 0) { first_year_col <- colnames(hurdle_proj_result_raw)[grepl("^\\d{4}$", colnames(hurdle_proj_result_raw))][1]; hurdle_intrinsic_value <- hurdle_intrinsic_value_row[[first_year_col]]; if (!is.null(target_future_value) && target_future_value > 0 && is.numeric(hurdle_intrinsic_value)) { hurdle_return_multiple <- hurdle_intrinsic_value / target_future_value } }; print(paste("Hurdle Achieved Multiple:", hurdle_return_multiple)); prop_row_idx <- which(hurdle_proj_result_raw$Metric == "Proportion of Market Cap"); if (length(prop_row_idx) > 0) { hurdle_proj_result_raw$Metric[prop_row_idx] <- "Hurdle Multiple Achieved (x)"; hurdle_proj_result_raw[prop_row_idx, -1] <- NA; hurdle_proj_result_raw[prop_row_idx, first_year_col] <- hurdle_return_multiple } else { new_row <- data.frame(Metric = "Hurdle Multiple Achieved (x)"); new_row[1, setdiff(colnames(hurdle_proj_result_raw), "Metric")] <- NA; new_row[1, first_year_col] <- hurdle_return_multiple; hurdle_proj_result_raw <- rbind(hurdle_proj_result_raw, new_row) }
       
       set_hurdle_projections_data(app_state, hurdle_proj_result_raw)
@@ -790,6 +790,26 @@ server <- function(input, output, session) {
       main_dcf_assum <- get_assumptions_data(app_state) # Main DCF assumptions
       main_dcf_params <- reactiveValuesToList(app_state$dcf$parameters) # Main DCF parameters
       hurdle_inputs <- get_hurdle_inputs(app_state) # Target mult, period, dilution
+
+      # Inherit market cap from main DCF for display in Hurdle's parameter panel
+      app_state$hurdle_dcf$parameters$market_cap <- main_dcf_params$market_cap %||% 0
+      set_hurdle_param_modified(app_state, "market_cap", FALSE) # Reset modified flag
+      print(paste("Hurdle panel display market_cap set from DCF tab:", app_state$hurdle_dcf$parameters$market_cap))
+
+      # Calculate the target_future_value for the hurdle multiple calculation
+      # This uses the main DCF market cap as the base.
+      current_mkt_cap_from_main_dcf <- main_dcf_params$market_cap %||% 0
+      target_mult <- hurdle_inputs$target_multiple %||% 1
+      dilution <- hurdle_inputs$dilution_pct %||% 0
+      calculated_target_future_value <- 0
+      if (current_mkt_cap_from_main_dcf > 0 && (1 - dilution/100) > 0) {
+        calculated_target_future_value <- current_mkt_cap_from_main_dcf * target_mult / (1 - dilution/100)
+      } else if (current_mkt_cap_from_main_dcf > 0) {
+        print("Warning: Dilution >= 100%, target future value for multiple calc cannot be determined meaningfully.")
+        calculated_target_future_value <- NA
+      }
+      app_state$hurdle_dcf$target_future_value_for_calc <- calculated_target_future_value # Store for use in projection calc
+      print(paste("Calculated target_future_value_for_calc (for Hurdle Multiple):", app_state$hurdle_dcf$target_future_value_for_calc))
       
       req(main_dcf_proj, main_dcf_assum, main_dcf_params, hurdle_inputs) # Ensure required data exists
       
@@ -830,8 +850,8 @@ server <- function(input, output, session) {
       # Copy parameters one by one to preserve reactivity of the list itself
       print("Copying parameters from main DCF to hurdle DCF...")
       for(param_name in names(main_dcf_params)) {
-        # Don't copy CAP (keep hurdle's own) and ensure target exists
-        if (param_name != "CAP" && param_name %in% names(app_state$hurdle_dcf$parameters)) {
+        # Don't copy CAP (keep hurdle's own) or market_cap (handled above for display)
+        if (param_name != "CAP" && param_name != "market_cap" && param_name %in% names(app_state$hurdle_dcf$parameters)) {
           # Update the reactive value element directly
           app_state$hurdle_dcf$parameters[[param_name]] <- main_dcf_params[[param_name]]
           print(paste("  Copied", param_name, ":", main_dcf_params[[param_name]]))
@@ -841,35 +861,13 @@ server <- function(input, output, session) {
       app_state$hurdle_dcf$parameters$CAP <- current_hurdle_cap
       print(paste("  Restored Hurdle CAP:", current_hurdle_cap))
       
-      print("Resetting modified flags for copied hurdle parameters...")
+      print("Resetting modified flags for copied hurdle parameters (excluding market_cap)...")
       for(param_name in names(main_dcf_params)) {
         if (param_name != "CAP" && param_name != "market_cap" && param_name %in% names(app_state$ui$hurdle_params_modified)) {
           set_hurdle_param_modified(app_state, param_name, FALSE)
           print(paste("  Reset modified flag for hurdle parameter:", param_name))
         }
       }
-
-      # Inherit market cap from main DCF as starting point for Hurdle calc
-      app_state$hurdle_dcf$parameters$market_cap <- main_dcf_params$market_cap %||% 0
-      print(paste("Hurdle internal market_cap initially set from DCF tab:", app_state$hurdle_dcf$parameters$market_cap))
-
-      # Calculate and set the hurdle target market cap separately
-      current_mkt_cap <- main_dcf_params$market_cap %||% 0 # This will now use the value from main_dcf_params
-      target_mult <- hurdle_inputs$target_multiple %||% 1
-      dilution <- hurdle_inputs$dilution_pct %||% 0
-      target_future_value = 0
-      if (current_mkt_cap > 0 && (1 - dilution/100) > 0) {
-        target_future_value <- current_mkt_cap * target_mult / (1 - dilution/100)
-      } else if (current_mkt_cap > 0) {
-        # Handle case where dilution is 100% or more (avoid division by zero/negative)
-        print("Warning: Dilution >= 100%, target future value cannot be calculated meaningfully.")
-        target_future_value <- NA # Or some other indicator of failure
-      }
-      app_state$hurdle_dcf$parameters$market_cap <- target_future_value # Store calculated target value
-      print(paste("Hurdle Target Future Value (stored in market_cap):", target_future_value))
-      set_hurdle_param_modified(app_state, "market_cap", FALSE) # Reset modified flag for market_cap
-      print("Reset modified flag for hurdle parameter: market_cap")
-      
       
       # --- Initialize Hurdle Assumptions ---
       # Copy last year's assumptions from main DCF as starting point for hurdle
@@ -953,7 +951,36 @@ server <- function(input, output, session) {
     
     # 2. Apply Specific Formatting (convert cols to character)
     if (length(year_cols) > 0) {
-      hurdle_proj_df_display[, year_cols] <- lapply(hurdle_proj_df_display[, year_cols], function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE))
+      first_year_col_name <- year_cols[1]
+
+      for (col_idx in seq_along(year_cols)) {
+        col_name_char <- year_cols[col_idx]
+
+        for (row_idx in 1:nrow(hurdle_proj_df_display)) {
+          metric_name <- hurdle_proj_df_display$Metric[row_idx]
+          current_val <- hurdle_proj_df_display[row_idx, col_name_char] # This value is already rounded
+
+          is_special_metric_row <- metric_name %in% c("Revenue CAGR (%)", "FCFE Growth (%)", "Hurdle Multiple Achieved (x)")
+
+          if (!is_special_metric_row && is.numeric(current_val) && !is.na(current_val)) {
+            # For the first year column, format with nsmall = 0.
+            # For other year columns, format with nsmall = 2.
+            # This applies to general numeric rows that have been rounded.
+            if (col_name_char == first_year_col_name) {
+              hurdle_proj_df_display[row_idx, col_name_char] <- format(current_val, big.mark = ",", scientific = FALSE, trim = TRUE, nsmall = 0)
+            } else {
+              hurdle_proj_df_display[row_idx, col_name_char] <- format(current_val, big.mark = ",", scientific = FALSE, trim = TRUE, nsmall = 2)
+            }
+          } else if (!is_numeric(current_val) || is.na(current_val)) {
+            # If already character (e.g. from a previous incorrect format) or NA, ensure it's character for DT.
+            # Special metric rows will also fall here initially if their rounded numeric value was taken.
+            # Their specific string formatting later will overwrite this.
+            hurdle_proj_df_display[row_idx, col_name_char] <- as.character(current_val)
+          }
+          # If it's a special metric row and current_val was numeric, it's now a character version of the number.
+          # The specific formatting for these rows (e.g., adding '%' or 'x') applied AFTER this loop will handle them.
+        }
+      }
     }
     
     
